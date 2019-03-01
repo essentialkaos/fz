@@ -200,7 +200,7 @@ func renderInfo(cur Info) {
 
 // printResults prints tests results
 func printResults() {
-	if startInfo.Execs == 0 {
+	if startInfo.Uptime == 0 {
 		startInfo = prevInfo
 	}
 
