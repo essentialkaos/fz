@@ -137,8 +137,12 @@ func processInput() {
 
 		prevInfo = info
 
-		if startInfo.Uptime == 0 && info.Cover != 0 {
+		if startInfo.Uptime == 0 {
 			startInfo = info
+		}
+
+		if startInfo.Cover == 0 && info.Cover > 0 {
+			startInfo.Cover = info.Cover
 		}
 	}
 }
@@ -196,6 +200,10 @@ func renderInfo(cur Info) {
 
 // printResults prints tests results
 func printResults() {
+	if startInfo.Execs == 0 {
+		startInfo = prevInfo
+	}
+
 	corpus := formatResultNum(prevInfo.Corpus - startInfo.Corpus)
 	crashers := formatResultNum(prevInfo.Crashers - startInfo.Crashers)
 	cover := formatResultNum(prevInfo.Cover - startInfo.Cover)
