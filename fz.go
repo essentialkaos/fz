@@ -242,7 +242,7 @@ func showAbout() {
 		Year:          2009,
 		Owner:         "Essential Kaos",
 		License:       "Essential Kaos Open Source License <https://essentialkaos.com/ekol>",
-		UpdateChecker: usage.UpdateChecker{"essentialkaos/gomakegen", update.GitHubChecker},
+		UpdateChecker: usage.UpdateChecker{"essentialkaos/fz", update.GitHubChecker},
 	}
 
 	about.Render()
