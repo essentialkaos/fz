@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://travis-ci.org/essentialkaos/fz"><img src="https://travis-ci.org/essentialkaos/fz.svg"></a>
   <a href="https://goreportcard.com/report/github.com/essentialkaos/fz"><img src="https://goreportcard.com/badge/github.com/essentialkaos/fz"></a>
+  <a href="https://codebeat.co/projects/github-com-essentialkaos-fz-master"><img alt="codebeat badge" src="https://codebeat.co/badges/64a79279-c198-422c-862c-d4e735358ac1" /></a>
   <a href="https://essentialkaos.com/ekol"><img src="https://gh.kaos.st/ekol.svg"></a>
 </p>
 
