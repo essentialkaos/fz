@@ -10,6 +10,10 @@
 
 `fz` is a simple tool for formatting [`go-fuzz`](https://github.com/dvyukov/go-fuzz) output.
 
+### Usage demo
+
+[![demo](https://gh.kaos.st/fz-001.gif)](#usage-demo)
+
 ### Installation
 
 #### From source
