@@ -54,6 +54,7 @@ type Info struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// optMap is map with options
 var optMap = options.Map{
 	OPT_NO_COLOR: {Type: options.BOOL},
 	OPT_HELP:     {Type: options.BOOL, Alias: "u:usage"},
@@ -62,6 +63,7 @@ var optMap = options.Map{
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// main is main func
 func main() {
 	_, errs := options.Parse(optMap)
 
@@ -206,6 +208,7 @@ func hasStdinData() bool {
 	return true
 }
 
+// isShutdownMessage returns true if data contains shutdown message
 func isShutdownMessage(data string) bool {
 	return strings.Contains(data, "shutting down...")
 }
