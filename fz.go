@@ -43,6 +43,7 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Info contains info about test
 type Info struct {
 	DateTime    string
 	Workers     int
@@ -150,7 +151,6 @@ func processInput() {
 // parseInfoLine parses line with go-fuzz output data
 func parseInfoLine(data string) (Info, bool) {
 	info := Info{}
-
 	dataSlice := strings.Split(data, ",")
 
 	if len(dataSlice) < 7 {
