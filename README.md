@@ -3,7 +3,7 @@
 <p align="center"><a href="#installation">Installation</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#license">License</a></p>
 
 <p align="center">
-  <a href="https://travis-ci.org/essentialkaos/fz"><img src="https://travis-ci.org/essentialkaos/fz.svg"></a>
+  <a href="https://travis-ci.com/essentialkaos/fz"><img src="https://travis-ci.com/essentialkaos/fz.svg"></a>
   <a href="https://goreportcard.com/report/github.com/essentialkaos/fz"><img src="https://goreportcard.com/badge/github.com/essentialkaos/fz"></a>
   <a href="https://codebeat.co/projects/github-com-essentialkaos-fz-master"><img alt="codebeat badge" src="https://codebeat.co/badges/64a79279-c198-422c-862c-d4e735358ac1" /></a>
   <a href="https://essentialkaos.com/ekol"><img src="https://gh.kaos.st/ekol.svg"></a>
@@ -62,8 +62,8 @@ Options
 
 | Branch | Status |
 |--------|--------|
-| `master` | [![Build Status](https://travis-ci.org/essentialkaos/fz.svg?branch=master)](https://travis-ci.org/essentialkaos/fz) |
-| `develop` | [![Build Status](https://travis-ci.org/essentialkaos/fz.svg?branch=develop)](https://travis-ci.org/essentialkaos/fz) |
+| `master` | [![Build Status](https://travis-ci.com/essentialkaos/fz.svg?branch=master)](https://travis-ci.com/essentialkaos/fz) |
+| `develop` | [![Build Status](https://travis-ci.com/essentialkaos/fz.svg?branch=develop)](https://travis-ci.com/essentialkaos/fz) |
 
 ### Contributing
 
