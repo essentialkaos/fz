@@ -9,20 +9,24 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v10/fmtc"
-	"pkg.re/essentialkaos/ek.v10/fmtutil"
-	"pkg.re/essentialkaos/ek.v10/options"
-	"pkg.re/essentialkaos/ek.v10/signal"
-	"pkg.re/essentialkaos/ek.v10/strutil"
-	"pkg.re/essentialkaos/ek.v10/timeutil"
-	"pkg.re/essentialkaos/ek.v10/usage"
-	"pkg.re/essentialkaos/ek.v10/usage/update"
+	"pkg.re/essentialkaos/ek.v11/fmtc"
+	"pkg.re/essentialkaos/ek.v11/fmtutil"
+	"pkg.re/essentialkaos/ek.v11/options"
+	"pkg.re/essentialkaos/ek.v11/signal"
+	"pkg.re/essentialkaos/ek.v11/strutil"
+	"pkg.re/essentialkaos/ek.v11/timeutil"
+	"pkg.re/essentialkaos/ek.v11/usage"
+	"pkg.re/essentialkaos/ek.v11/usage/completion/bash"
+	"pkg.re/essentialkaos/ek.v11/usage/completion/fish"
+	"pkg.re/essentialkaos/ek.v11/usage/completion/zsh"
+	"pkg.re/essentialkaos/ek.v11/usage/update"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -30,7 +34,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "0.0.1"
+	VER  = "0.0.2"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -39,6 +43,8 @@ const (
 	OPT_NO_COLOR = "nc:no-color"
 	OPT_HELP     = "h:help"
 	OPT_VER      = "v:version"
+
+	OPT_COMPLETION = "completion"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -64,6 +70,8 @@ var optMap = options.Map{
 	OPT_NO_COLOR: {Type: options.BOOL},
 	OPT_HELP:     {Type: options.BOOL, Alias: "u:usage"},
 	OPT_VER:      {Type: options.BOOL, Alias: "ver"},
+
+	OPT_COMPLETION: {},
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -87,6 +95,10 @@ func main() {
 		}
 
 		os.Exit(1)
+	}
+
+	if options.Has(OPT_COMPLETION) {
+		genCompletion()
 	}
 
 	if options.GetB(OPT_NO_COLOR) {
@@ -301,13 +313,34 @@ func printWarn(f string, a ...interface{}) {
 
 // showUsage print usage info
 func showUsage() {
+	genUsage().Render()
+}
+
+// genUsage generates usage info
+func genUsage() *usage.Info {
 	info := usage.NewInfo("go-fuzz … |& fz")
 
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
 
-	info.Render()
+	return info
+}
+
+// genCompletion generates completion for different shells
+func genCompletion() {
+	switch options.GetS(OPT_COMPLETION) {
+	case "bash":
+		fmt.Printf(bash.Generate(genUsage(), "fz"))
+	case "fish":
+		fmt.Printf(fish.Generate(genUsage(), "fz"))
+	case "zsh":
+		fmt.Printf(zsh.Generate(genUsage(), optMap, "fz"))
+	default:
+		os.Exit(1)
+	}
+
+	os.Exit(0)
 }
 
 // showAbout print info about version
