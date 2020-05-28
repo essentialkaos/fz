@@ -16,17 +16,17 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v11/fmtc"
-	"pkg.re/essentialkaos/ek.v11/fmtutil"
-	"pkg.re/essentialkaos/ek.v11/options"
-	"pkg.re/essentialkaos/ek.v11/signal"
-	"pkg.re/essentialkaos/ek.v11/strutil"
-	"pkg.re/essentialkaos/ek.v11/timeutil"
-	"pkg.re/essentialkaos/ek.v11/usage"
-	"pkg.re/essentialkaos/ek.v11/usage/completion/bash"
-	"pkg.re/essentialkaos/ek.v11/usage/completion/fish"
-	"pkg.re/essentialkaos/ek.v11/usage/completion/zsh"
-	"pkg.re/essentialkaos/ek.v11/usage/update"
+	"pkg.re/essentialkaos/ek.v12/fmtc"
+	"pkg.re/essentialkaos/ek.v12/fmtutil"
+	"pkg.re/essentialkaos/ek.v12/options"
+	"pkg.re/essentialkaos/ek.v12/signal"
+	"pkg.re/essentialkaos/ek.v12/strutil"
+	"pkg.re/essentialkaos/ek.v12/timeutil"
+	"pkg.re/essentialkaos/ek.v12/usage"
+	"pkg.re/essentialkaos/ek.v12/usage/completion/bash"
+	"pkg.re/essentialkaos/ek.v12/usage/completion/fish"
+	"pkg.re/essentialkaos/ek.v12/usage/completion/zsh"
+	"pkg.re/essentialkaos/ek.v12/usage/update"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -34,7 +34,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "0.0.2"
+	VER  = "0.0.3"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -203,7 +203,7 @@ func renderInfo(cur Info) {
 	execsArrow := getDynamicsArrow(cur.ExecsPerSec, prevInfo.ExecsPerSec)
 
 	fmtc.TPrintf(
-		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s}│{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s}│{!} {*}Crashers:{!} "+crashersTag+"%d {s}│{!} {*}Restarts:{!} %s {s}│{!} {*}Cover:{!} "+coverTag+"%s{!} {s}│{!} {*}Execs:{!} {s}%s{!}%s{s}/s{!} {s-}(%s){!}",
+		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%d {s-}•{!} {*}Restarts:{!} %s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} {s}%s{!}%s{s}/s{!} {s-}(%s){!}",
 		cur.DateTime, formatDuration(cur.Uptime), cur.Workers, fmtutil.PrettyNum(cur.Corpus),
 		formatDuration(cur.CorpusDur), cur.Crashers, cur.Restarts, fmtutil.PrettyNum(cur.Cover),
 		execsArrow, fmtutil.PrettyNum(cur.ExecsPerSec), fmtutil.PrettyNum(cur.Execs),
@@ -223,7 +223,7 @@ func printResults() {
 	execs := fmtutil.PrettyNum(prevInfo.Execs)
 
 	fmtc.TPrintf(
-		"{*}Duration:{!} %s {s}│{!} {*}Execs:{!} %s {s}│{!} {*}Corpus:{!} %s {s}│{!} {*}Crashers:{!} %s {s}│{!} {*}Cover:{!} %s\n",
+		"{*}Duration:{!} %s {s-}•{!} {*}Execs:{!} %s {s-}•{!} {*}Corpus:{!} %s {s-}•{!} {*}Crashers:{!} %s {s-}•{!} {*}Cover:{!} %s\n",
 		duration, execs, corpus, crashers, cover,
 	)
 }
