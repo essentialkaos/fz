@@ -200,13 +200,11 @@ func renderInfo(cur Info) {
 		crashersTag = "{r}"
 	}
 
-	execsArrow := getDynamicsArrow(cur.ExecsPerSec, prevInfo.ExecsPerSec)
-
 	fmtc.TPrintf(
-		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%d {s-}•{!} {*}Restarts:{!} %s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} {s}%s{!}%s{s}/s{!} {s-}(%s){!}",
+		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%d {s-}•{!} {*}Restarts:{!} %s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} %s{s}/s{!} {s-}(%s){!}",
 		cur.DateTime, formatDuration(cur.Uptime), cur.Workers, fmtutil.PrettyNum(cur.Corpus),
 		formatDuration(cur.CorpusDur), cur.Crashers, cur.Restarts, fmtutil.PrettyNum(cur.Cover),
-		execsArrow, fmtutil.PrettyNum(cur.ExecsPerSec), fmtutil.PrettyNum(cur.Execs),
+		fmtutil.PrettyNum(cur.ExecsPerSec), fmtutil.PrettyNum(cur.Execs),
 	)
 }
 
@@ -236,19 +234,6 @@ func getIndicatorTag(v1, v2 int) string {
 		return "{g}"
 	case v1 < v2:
 		return "{r}"
-	default:
-		return ""
-	}
-}
-
-// getIndicatorTag returns arrow symbol based on difference between
-// current and previous values
-func getDynamicsArrow(v1, v2 int) string {
-	switch {
-	case v1 > v2:
-		return "↑"
-	case v1 < v2:
-		return "↓"
 	default:
 		return ""
 	}
