@@ -13,7 +13,7 @@ branches:
   - master
   - develop
 
-matrix:
+jobs:
   fast_finish: true
   allow_failures:
     - go: tip
