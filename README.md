@@ -1,7 +1,7 @@
 <p align="center"><a href="#readme"><img src="https://gh.kaos.st/fz.svg"/></a></p>
 
 <p align="center">
-  <a href="https://travis-ci.com/essentialkaos/fz"><img src="https://travis-ci.com/essentialkaos/fz.svg"></a>
+  <a href="https://github.com/essentialkaos/fz/actions"><img src="https://github.com/essentialkaos/fz/workflows/CI/badge.svg" alt="GitHub Actions Status" /></a>
   <a href="https://github.com/essentialkaos/fz/actions?query=workflow%3ACodeQL"><img src="https://github.com/essentialkaos/fz/workflows/CodeQL/badge.svg" /></a>
   <a href="https://goreportcard.com/report/github.com/essentialkaos/fz"><img src="https://goreportcard.com/badge/github.com/essentialkaos/fz"></a>
   <a href="https://codebeat.co/projects/github-com-essentialkaos-fz-master"><img alt="codebeat badge" src="https://codebeat.co/badges/64a79279-c198-422c-862c-d4e735358ac1" /></a>
@@ -65,8 +65,8 @@ Options
 
 | Branch | Status |
 |--------|--------|
-| `master` | [![Build Status](https://travis-ci.com/essentialkaos/fz.svg?branch=master)](https://travis-ci.com/essentialkaos/fz) |
-| `develop` | [![Build Status](https://travis-ci.com/essentialkaos/fz.svg?branch=develop)](https://travis-ci.com/essentialkaos/fz) |
+| `master` | [![CI](https://github.com/essentialkaos/fz/workflows/CI/badge.svg?branch=master)](https://github.com/essentialkaos/fz/actions) |
+| `develop` | [![CI](https://github.com/essentialkaos/fz/workflows/CI/badge.svg?branch=develop)](https://github.com/essentialkaos/fz/actions) |
 
 ### Contributing
 
