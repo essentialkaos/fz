@@ -1,10 +1,10 @@
 <p align="center"><a href="#readme"><img src="https://gh.kaos.st/fz.svg"/></a></p>
 
 <p align="center">
-  <a href="https://github.com/essentialkaos/fz/actions"><img src="https://github.com/essentialkaos/fz/workflows/CI/badge.svg" alt="GitHub Actions Status" /></a>
-  <a href="https://github.com/essentialkaos/fz/actions?query=workflow%3ACodeQL"><img src="https://github.com/essentialkaos/fz/workflows/CodeQL/badge.svg" /></a>
-  <a href="https://goreportcard.com/report/github.com/essentialkaos/fz"><img src="https://goreportcard.com/badge/github.com/essentialkaos/fz"></a>
-  <a href="https://codebeat.co/projects/github-com-essentialkaos-fz-master"><img alt="codebeat badge" src="https://codebeat.co/badges/64a79279-c198-422c-862c-d4e735358ac1" /></a>
+  <a href="https://kaos.sh/w/fz/ci"><img src="https://kaos.sh/w/fz/ci.svg" alt="GitHub Actions CI Status" /></a>
+  <a href="https://kaos.sh/w/fz/codeql"><img src="https://kaos.sh/w/fz/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
+  <a href="https://kaos.sh/r/fz"><img src="https://kaos.sh/r/fz.svg" alt="GoReportCard" /></a>
+  <a href="https://kaos.sh/b/fz"><img src="https://kaos.sh/b/64a79279-c198-422c-862c-d4e735358ac1.svg" alt="Codebeat badge" /></a>
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
@@ -22,22 +22,10 @@
 
 #### From source
 
-Before the initial install, allow git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (_reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)_):
+To build the `fz` from scratch, make sure you have a working Go 1.15+ workspace (_[instructions](https://golang.org/doc/install)_), then:
 
 ```
-git config --global http.https://pkg.re.followRedirects true
-```
-
-To build the `fz` from scratch, make sure you have a working Go 1.13+ workspace (_[instructions](https://golang.org/doc/install)_), then:
-
-```
-go get github.com/essentialkaos/fz
-```
-
-If you want to update `fz` to latest stable release, do:
-
-```
-go get -u github.com/essentialkaos/fz
+go install github.com/essentialkaos/fz
 ```
 
 #### Prebuilt binaries
@@ -65,8 +53,8 @@ Options
 
 | Branch | Status |
 |--------|--------|
-| `master` | [![CI](https://github.com/essentialkaos/fz/workflows/CI/badge.svg?branch=master)](https://github.com/essentialkaos/fz/actions) |
-| `develop` | [![CI](https://github.com/essentialkaos/fz/workflows/CI/badge.svg?branch=develop)](https://github.com/essentialkaos/fz/actions) |
+| `master` | [![CI](https://kaos.sh/w/fz/ci.svg?branch=master)](https://kaos.sh/w/fz/ci?query=branch:master) |
+| `develop` | [![CI](https://kaos.sh/w/fz/ci.svg?branch=develop)](https://kaos.sh/w/fz/ci?query=branch:develop) |
 
 ### Contributing
 
