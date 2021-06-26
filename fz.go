@@ -34,7 +34,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "0.0.3"
+	VER  = "0.0.4"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -176,14 +176,14 @@ func parseInfoLine(data string) (Info, bool) {
 	info.DateTime += " " + strutil.ReadField(dataSlice[0], 1, false, " ")
 	info.Workers, _ = strconv.Atoi(strutil.ReadField(dataSlice[0], 3, false, " "))
 	info.Corpus, _ = strconv.Atoi(strutil.ReadField(dataSlice[1], 1, false, " "))
-	info.CorpusDur = timeutil.ParseDuration(corpusDate)
+	info.CorpusDur, _ = timeutil.ParseDuration(corpusDate)
 	info.Crashers, _ = strconv.Atoi(strutil.ReadField(dataSlice[2], 1, false, " "))
 	info.Restarts = strutil.ReadField(dataSlice[3], 1, false, " ")
 	info.Execs, _ = strconv.Atoi(strutil.ReadField(dataSlice[4], 1, false, " "))
 	execsPerSec := strings.Trim(strutil.ReadField(dataSlice[4], 2, false, " "), "(/sec)")
 	info.ExecsPerSec, _ = strconv.Atoi(execsPerSec)
 	info.Cover, _ = strconv.Atoi(strutil.ReadField(dataSlice[5], 1, false, " "))
-	info.Uptime = timeutil.ParseDuration(uptime)
+	info.Uptime, _ = timeutil.ParseDuration(uptime)
 
 	return info, true
 }
