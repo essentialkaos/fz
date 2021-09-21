@@ -2,7 +2,7 @@ package main
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2020 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2021 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -34,7 +34,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "0.0.4"
+	VER  = "0.0.5"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -60,7 +60,6 @@ type Info struct {
 	Execs       int
 	ExecsPerSec int
 	Cover       int
-	Uptime      int64
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -78,6 +77,9 @@ var optMap = options.Map{
 
 var startInfo Info
 var prevInfo Info
+
+var startTime time.Time
+var corpusTime time.Time
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -129,6 +131,9 @@ func processInput() {
 	r := bufio.NewReader(os.Stdin)
 	s := bufio.NewScanner(r)
 
+	startTime = time.Now()
+	corpusTime = time.Now()
+
 	fmtc.TPrintf("{s-}Starting tests…{!}")
 
 	for s.Scan() {
@@ -150,10 +155,6 @@ func processInput() {
 
 		prevInfo = info
 
-		if startInfo.Uptime == 0 {
-			startInfo = info
-		}
-
 		if startInfo.Cover == 0 && info.Cover > 0 {
 			startInfo.Cover = info.Cover
 		}
@@ -169,21 +170,16 @@ func parseInfoLine(data string) (Info, bool) {
 		return info, false
 	}
 
-	corpusDate := strings.Trim(strutil.ReadField(dataSlice[1], 2, false, " "), "(")
-	uptime := strutil.ReadField(dataSlice[6], 1, false, " ")
-
 	info.DateTime = strutil.ReadField(dataSlice[0], 0, false, " ")
 	info.DateTime += " " + strutil.ReadField(dataSlice[0], 1, false, " ")
 	info.Workers, _ = strconv.Atoi(strutil.ReadField(dataSlice[0], 3, false, " "))
 	info.Corpus, _ = strconv.Atoi(strutil.ReadField(dataSlice[1], 1, false, " "))
-	info.CorpusDur, _ = timeutil.ParseDuration(corpusDate)
 	info.Crashers, _ = strconv.Atoi(strutil.ReadField(dataSlice[2], 1, false, " "))
 	info.Restarts = strutil.ReadField(dataSlice[3], 1, false, " ")
 	info.Execs, _ = strconv.Atoi(strutil.ReadField(dataSlice[4], 1, false, " "))
 	execsPerSec := strings.Trim(strutil.ReadField(dataSlice[4], 2, false, " "), "(/sec)")
 	info.ExecsPerSec, _ = strconv.Atoi(execsPerSec)
 	info.Cover, _ = strconv.Atoi(strutil.ReadField(dataSlice[5], 1, false, " "))
-	info.Uptime, _ = timeutil.ParseDuration(uptime)
 
 	return info, true
 }
@@ -200,24 +196,29 @@ func renderInfo(cur Info) {
 		crashersTag = "{r}"
 	}
 
+	if cur.Corpus != prevInfo.Corpus {
+		corpusTime = time.Now()
+	}
+
 	fmtc.TPrintf(
 		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%d {s-}•{!} {*}Restarts:{!} %s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} %s{s}/s{!} {s-}(%s){!}",
-		cur.DateTime, formatDuration(cur.Uptime), cur.Workers, fmtutil.PrettyNum(cur.Corpus),
-		formatDuration(cur.CorpusDur), cur.Crashers, cur.Restarts, fmtutil.PrettyNum(cur.Cover),
-		fmtutil.PrettyNum(cur.ExecsPerSec), fmtutil.PrettyNum(cur.Execs),
+		cur.DateTime,
+		timeutil.ShortDuration(time.Since(startTime), false),
+		cur.Workers, fmtutil.PrettyNum(cur.Corpus),
+		timeutil.ShortDuration(time.Since(corpusTime), false),
+		cur.Crashers, cur.Restarts,
+		fmtutil.PrettyNum(cur.Cover),
+		fmtutil.PrettyNum(cur.ExecsPerSec),
+		fmtutil.PrettyNum(cur.Execs),
 	)
 }
 
 // printResults prints tests results
 func printResults() {
-	if startInfo.Uptime == 0 {
-		startInfo = prevInfo
-	}
-
 	corpus := formatResultNum(prevInfo.Corpus - startInfo.Corpus)
 	crashers := formatResultNum(prevInfo.Crashers - startInfo.Crashers)
 	cover := formatResultNum(prevInfo.Cover - startInfo.Cover)
-	duration := timeutil.PrettyDuration(prevInfo.Uptime)
+	duration := timeutil.PrettyDuration(time.Since(startTime))
 	execs := fmtutil.PrettyNum(prevInfo.Execs)
 
 	fmtc.TPrintf(
@@ -237,16 +238,6 @@ func getIndicatorTag(v1, v2 int) string {
 	default:
 		return ""
 	}
-}
-
-// formatDuration formats duration
-func formatDuration(d int64) string {
-	var min, sec int64
-
-	min = d / 60
-	sec = d % 60
-
-	return fmtc.Sprintf("%01d:%02d", min, sec)
 }
 
 // formatResultNum formats number for results
