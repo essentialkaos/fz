@@ -22,7 +22,7 @@
 
 #### From source
 
-To build the `fz` from scratch, make sure you have a working Go 1.15+ workspace (_[instructions](https://golang.org/doc/install)_), then:
+To build the `fz` from scratch, make sure you have a working Go 1.16+ workspace (_[instructions](https://golang.org/doc/install)_), then:
 
 ```
 go install github.com/essentialkaos/fz
