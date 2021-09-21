@@ -39,8 +39,12 @@ jobs:
 
       - name: Download dependencies
         working-directory: ${{env.SRC_DIR}}
-        run: make deps
+        run: make deps deps-test
 
       - name: Build binary
         working-directory: ${{env.SRC_DIR}}
         run: make all
+
+      - name: Test go-fuzz output parser
+        working-directory: ${{env.SRC_DIR}}
+        run: make test

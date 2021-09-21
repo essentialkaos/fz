@@ -8,7 +8,7 @@
 ################################################################################
 
 .DEFAULT_GOAL := help
-.PHONY = fmt vet all clean git-config deps help
+.PHONY = fmt vet all clean git-config deps deps-test test help
 
 ################################################################################
 
@@ -28,6 +28,12 @@ git-config: ## Configure git redirects for stable import path services
 
 deps: git-config ## Download dependencies
 	go get -d -v pkg.re/essentialkaos/ek.v12
+
+deps-test: git-config ## Download dependencies for tests
+	go get -d -v pkg.re/essentialkaos/check.v1
+
+test: ## Run tests
+	go test -covermode=count ./gofuzz
 
 fmt: ## Format source code with gofmt
 	find . -name "*.go" -exec gofmt -s -w {} \;

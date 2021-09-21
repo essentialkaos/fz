@@ -8,7 +8,7 @@
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
-<p align="center"><a href="#installation">Installation</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#usage-demo">Demo</a> • <a href="#installation">Installation</a> • <a href="#command-line-completion">Completions</a> • <a href="#man-documentation">Man documentation</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#license">License</a></p>
 
 <br/>
 
@@ -30,10 +30,39 @@ go install github.com/essentialkaos/fz
 
 #### Prebuilt binaries
 
-You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.st/fz/latest):
+You can download prebuilt binaries for Linux and macOS from [EK Apps Repository](https://apps.kaos.st/fz/latest):
 
 ```bash
 bash <(curl -fsSL https://apps.kaos.st/get) fz
+```
+
+### Command-line completion
+
+You can generate completion for `bash`, `zsh` or `fish` shell.
+
+Bash:
+```bash
+sudo fz --completion=bash 1> /etc/bash_completion.d/fz
+```
+
+
+ZSH:
+```bash
+sudo fz --completion=zsh 1> /usr/share/zsh/site-functions/fz
+```
+
+
+Fish:
+```bash
+sudo fz --completion=fish 1> /usr/share/fish/vendor_completions.d/fz.fish
+```
+
+### Man documentation
+
+You can generate man page for `fz` using next command:
+
+```bash
+fz --generate-man | sudo gzip > /usr/share/man/man1/fz.1.gz
 ```
 
 ### Usage
