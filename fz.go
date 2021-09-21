@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,13 +19,15 @@ import (
 	"pkg.re/essentialkaos/ek.v12/fmtutil"
 	"pkg.re/essentialkaos/ek.v12/options"
 	"pkg.re/essentialkaos/ek.v12/signal"
-	"pkg.re/essentialkaos/ek.v12/strutil"
 	"pkg.re/essentialkaos/ek.v12/timeutil"
 	"pkg.re/essentialkaos/ek.v12/usage"
 	"pkg.re/essentialkaos/ek.v12/usage/completion/bash"
 	"pkg.re/essentialkaos/ek.v12/usage/completion/fish"
 	"pkg.re/essentialkaos/ek.v12/usage/completion/zsh"
+	"pkg.re/essentialkaos/ek.v12/usage/man"
 	"pkg.re/essentialkaos/ek.v12/usage/update"
+
+	"github.com/essentialkaos/fz/gofuzz"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -34,7 +35,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "0.0.6"
+	VER  = "1.0.0"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -44,23 +45,9 @@ const (
 	OPT_HELP     = "h:help"
 	OPT_VER      = "v:version"
 
-	OPT_COMPLETION = "completion"
+	OPT_COMPLETION   = "completion"
+	OPT_GENERATE_MAN = "generate-man"
 )
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-// Info contains info about test
-type Info struct {
-	DateTime    string
-	Workers     int
-	Corpus      int
-	CorpusDur   int64
-	Crashers    int
-	Restarts    string
-	Execs       int
-	ExecsPerSec int
-	Cover       int
-}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -70,14 +57,13 @@ var optMap = options.Map{
 	OPT_HELP:     {Type: options.BOOL, Alias: "u:usage"},
 	OPT_VER:      {Type: options.BOOL, Alias: "ver"},
 
-	OPT_COMPLETION: {},
+	OPT_COMPLETION:   {},
+	OPT_GENERATE_MAN: {Type: options.BOOL},
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var startInfo Info
-var prevInfo Info
-
+var prev gofuzz.Line
 var startTime time.Time
 var corpusTime time.Time
 
@@ -90,8 +76,6 @@ func main() {
 	_, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		printError("Options parsing errors:")
-
 		for _, err := range errs {
 			printError("  %v", err)
 		}
@@ -100,30 +84,41 @@ func main() {
 	}
 
 	if options.Has(OPT_COMPLETION) {
-		genCompletion()
+		os.Exit(genCompletion())
 	}
 
-	if options.GetB(OPT_NO_COLOR) {
-		fmtc.DisableColors = true
+	if options.Has(OPT_GENERATE_MAN) {
+		os.Exit(genMan())
 	}
+
+	configureUI()
 
 	if options.GetB(OPT_VER) {
-		showAbout()
-		os.Exit(0)
+		os.Exit(showAbout())
 	}
 
 	if options.GetB(OPT_HELP) || !hasStdinData() {
-		showUsage()
-		os.Exit(0)
+		os.Exit(showUsage())
 	}
 
+	configureSignalHandlers()
+	processInput()
+}
+
+// configureUI configures user interface
+func configureUI() {
+	if options.GetB(OPT_NO_COLOR) {
+		fmtc.DisableColors = true
+	}
+}
+
+// configureSignalHandlers configures signal handlers
+func configureSignalHandlers() {
 	signal.Handlers{
 		signal.INT:  signalHandler,
 		signal.TERM: signalHandler,
 		signal.QUIT: signalHandler,
 	}.TrackAsync()
-
-	processInput()
 }
 
 // processInput processes go-fuzz output passed to this tool
@@ -143,66 +138,44 @@ func processInput() {
 			time.Sleep(time.Minute)
 		}
 
-		info, ok := parseInfoLine(data)
+		line, err := gofuzz.Parse(data)
 
-		if !ok {
+		if err != nil {
 			fmtc.TPrintf("")
-			printError(data)
+			printError(err.Error())
 			os.Exit(1)
 		}
 
-		renderInfo(info)
+		renderInfo(line)
 
-		prevInfo = info
+		prev = line
 	}
-}
-
-// parseInfoLine parses line with go-fuzz output data
-func parseInfoLine(data string) (Info, bool) {
-	info := Info{}
-	dataSlice := strings.Split(data, ",")
-
-	if len(dataSlice) < 7 {
-		return info, false
-	}
-
-	info.DateTime = strutil.ReadField(dataSlice[0], 0, false, " ")
-	info.DateTime += " " + strutil.ReadField(dataSlice[0], 1, false, " ")
-	info.Workers, _ = strconv.Atoi(strutil.ReadField(dataSlice[0], 3, false, " "))
-	info.Corpus, _ = strconv.Atoi(strutil.ReadField(dataSlice[1], 1, false, " "))
-	info.Crashers, _ = strconv.Atoi(strutil.ReadField(dataSlice[2], 1, false, " "))
-	info.Restarts = strutil.ReadField(dataSlice[3], 1, false, " ")
-	info.Execs, _ = strconv.Atoi(strutil.ReadField(dataSlice[4], 1, false, " "))
-	execsPerSec := strings.Trim(strutil.ReadField(dataSlice[4], 2, false, " "), "(/sec)")
-	info.ExecsPerSec, _ = strconv.Atoi(execsPerSec)
-	info.Cover, _ = strconv.Atoi(strutil.ReadField(dataSlice[5], 1, false, " "))
-
-	return info, true
 }
 
 // renderInfo render line with info
-func renderInfo(cur Info) {
+func renderInfo(cur gofuzz.Line) {
 	var crashersTag string
 
-	workersTag := getIndicatorTag(cur.Workers, prevInfo.Workers)
-	corpusTag := getIndicatorTag(cur.Corpus, prevInfo.Corpus)
-	coverTag := getIndicatorTag(cur.Cover, prevInfo.Cover)
+	workersTag := getIndicatorTag(cur.Workers, prev.Workers)
+	corpusTag := getIndicatorTag(cur.Corpus, prev.Corpus)
+	coverTag := getIndicatorTag(cur.Cover, prev.Cover)
 
 	if cur.Crashers != 0 {
 		crashersTag = "{r}"
 	}
 
-	if cur.Corpus != prevInfo.Corpus {
+	if cur.Corpus != prev.Corpus {
 		corpusTime = time.Now()
 	}
 
 	fmtc.TPrintf(
-		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%d {s-}•{!} {*}Restarts:{!} %s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} %s{s}/s{!} {s-}(%s){!}",
-		cur.DateTime,
+		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%s {s-}•{!} {*}Restarts:{!} {s}1/{!}%s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} %s{s}/s{!} {s-}(%s){!}",
+		timeutil.Format(cur.DateTime, "%Y/%m/%d %H:%M:%S"),
 		timeutil.ShortDuration(time.Since(startTime), false),
 		cur.Workers, fmtutil.PrettyNum(cur.Corpus),
 		timeutil.ShortDuration(time.Since(corpusTime), false),
-		cur.Crashers, cur.Restarts,
+		fmtutil.PrettyNum(cur.Crashers),
+		fmtutil.PrettyNum(cur.Restarts),
 		fmtutil.PrettyNum(cur.Cover),
 		fmtutil.PrettyNum(cur.ExecsPerSec),
 		fmtutil.PrettyNum(cur.Execs),
@@ -211,11 +184,11 @@ func renderInfo(cur Info) {
 
 // printResults prints tests results
 func printResults() {
-	corpus := formatResultNum(prevInfo.Corpus - startInfo.Corpus)
-	crashers := formatResultNum(prevInfo.Crashers - startInfo.Crashers)
-	cover := formatResultNum(prevInfo.Cover - startInfo.Cover)
-	duration := timeutil.PrettyDuration(time.Since(startTime))
-	execs := fmtutil.PrettyNum(prevInfo.Execs)
+	corpus := fmtutil.PrettyNum(prev.Corpus)
+	crashers := fmtutil.PrettyNum(prev.Crashers)
+	cover := fmtutil.PrettyNum(prev.Cover)
+	duration := timeutil.ShortDuration(time.Since(startTime))
+	execs := fmtutil.PrettyNum(prev.Execs)
 
 	fmtc.TPrintf(
 		"{*}Duration:{!} %s {s-}•{!} {*}Execs:{!} %s {s-}•{!} {*}Corpus:{!} %s {s-}•{!} {*}Crashers:{!} %s {s-}•{!} {*}Cover:{!} %s\n",
@@ -234,15 +207,6 @@ func getIndicatorTag(v1, v2 int) string {
 	default:
 		return ""
 	}
-}
-
-// formatResultNum formats number for results
-func formatResultNum(v int) string {
-	if v <= 0 {
-		return "0"
-	}
-
-	return fmtc.Sprintf("+%d", v)
 }
 
 // signalHandler is signal handler
@@ -283,9 +247,32 @@ func printWarn(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// showUsage print usage info
-func showUsage() {
-	genUsage().Render()
+// genCompletion generates completion for different shells
+func genCompletion() int {
+	switch options.GetS(OPT_COMPLETION) {
+	case "bash":
+		fmt.Printf(bash.Generate(genUsage(), APP))
+	case "fish":
+		fmt.Printf(fish.Generate(genUsage(), APP))
+	case "zsh":
+		fmt.Printf(zsh.Generate(genUsage(), optMap, APP))
+	default:
+		return 1
+	}
+
+	return 0
+}
+
+// genMan generates man page
+func genMan() int {
+	fmt.Println(
+		man.Generate(
+			genUsage(),
+			genAbout(),
+		),
+	)
+
+	return 0
 }
 
 // genUsage generates usage info
@@ -299,33 +286,27 @@ func genUsage() *usage.Info {
 	return info
 }
 
-// genCompletion generates completion for different shells
-func genCompletion() {
-	switch options.GetS(OPT_COMPLETION) {
-	case "bash":
-		fmt.Printf(bash.Generate(genUsage(), "fz"))
-	case "fish":
-		fmt.Printf(fish.Generate(genUsage(), "fz"))
-	case "zsh":
-		fmt.Printf(zsh.Generate(genUsage(), optMap, "fz"))
-	default:
-		os.Exit(1)
-	}
-
-	os.Exit(0)
-}
-
-// showAbout print info about version
-func showAbout() {
-	about := &usage.About{
+// genAbout generates info about version
+func genAbout() *usage.About {
+	return &usage.About{
 		App:           APP,
 		Version:       VER,
 		Desc:          DESC,
 		Year:          2009,
-		Owner:         "Essential Kaos",
+		Owner:         "ESSENTIAL KAOS",
 		License:       "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
 		UpdateChecker: usage.UpdateChecker{"essentialkaos/fz", update.GitHubChecker},
 	}
+}
 
-	about.Render()
+// showUsage prints usage info
+func showUsage() int {
+	genUsage().Render()
+	return 0
+}
+
+// showAbout prints info about version
+func showAbout() int {
+	genAbout().Render()
+	return 0
 }
