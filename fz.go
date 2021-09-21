@@ -34,7 +34,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "0.0.5"
+	VER  = "0.0.6"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -154,10 +154,6 @@ func processInput() {
 		renderInfo(info)
 
 		prevInfo = info
-
-		if startInfo.Cover == 0 && info.Cover > 0 {
-			startInfo.Cover = info.Cover
-		}
 	}
 }
 
