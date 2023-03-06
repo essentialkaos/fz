@@ -80,19 +80,8 @@ func showApplicationInfo(app, ver, gitRev string) {
 func showEnvInfo() {
 	fmtutil.Separator(false, "ENVIRONMENT")
 
-	cmd := exec.Command("go", "version")
-	out, err := cmd.Output()
-
-	if err != nil {
-		printInfo(2, "Go", "")
-		return
-	}
-
-	goVer := string(out)
-	goVer = strutil.ReadField(goVer, 2, false, " ")
-	goVer = strutil.Exclude(goVer, "go")
-
-	printInfo(2, "Go", goVer)
+	printInfo(7, "Golang", getGOVersion())
+	printInfo(7, "go-fuzz", getGOFuzzVersion())
 }
 
 // showDepsInfo shows information about all dependencies
@@ -138,3 +127,35 @@ func printInfo(size int, name, value string) {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// getGOVersion returns version of installed Go
+func getGOVersion() string {
+	cmd := exec.Command("go", "version")
+	out, err := cmd.Output()
+
+	if err != nil {
+		return ""
+	}
+
+	goVer := strings.Trim(string(out), "\n\t\r")
+	goVer = strutil.ReadField(goVer, 2, false, " ")
+	goVer = strutil.Exclude(goVer, "go")
+
+	return goVer
+}
+
+// getGOFuzzVersion returns go-fuzz module version
+func getGOFuzzVersion() string {
+	cmd := exec.Command("go", "list", "-m", "github.com/dvyukov/go-fuzz")
+	out, err := cmd.Output()
+
+	if err != nil {
+		return ""
+	}
+
+	fuzzVer := strings.Trim(string(out), "\n\t\r")
+	fuzzVer = strutil.ReadField(fuzzVer, 1, false, " ")
+	fuzzVer = strings.TrimLeft(fuzzVer, "v")
+
+	return fuzzVer
+}
