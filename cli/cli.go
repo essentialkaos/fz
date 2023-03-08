@@ -72,17 +72,14 @@ var corpusTime time.Time
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Init is main function
-func Init(gitRev string, gomod []byte) {
+// Run is main utility function
+func Run(gitRev string, gomod []byte) {
 	runtime.GOMAXPROCS(3)
 
 	_, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		for _, err := range errs {
-			printError("  %v", err)
-		}
-
+		printError(errs[0].Error())
 		os.Exit(1)
 	}
 
@@ -90,17 +87,18 @@ func Init(gitRev string, gomod []byte) {
 
 	switch {
 	case options.Has(OPT_COMPLETION):
-		os.Exit(genCompletion())
+		os.Exit(printCompletion())
 	case options.Has(OPT_GENERATE_MAN):
-		os.Exit(genMan())
+		printMan()
+		os.Exit(0)
 	case options.GetB(OPT_VER):
-		showAbout(gitRev)
+		genAbout(gitRev).Print()
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
 		support.ShowSupportInfo(APP, VER, gitRev, gomod)
 		os.Exit(0)
 	case options.GetB(OPT_HELP) || !hasStdinData():
-		showUsage()
+		genUsage().Print()
 		os.Exit(0)
 	}
 
@@ -250,18 +248,8 @@ func printWarn(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// showUsage prints usage info
-func showUsage() {
-	genUsage().Render()
-}
-
-// showAbout prints info about version
-func showAbout(gitRev string) {
-	genAbout(gitRev).Render()
-}
-
-// genCompletion generates completion for different shells
-func genCompletion() int {
+// printCompletion prints completion for given shell
+func printCompletion() int {
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
 		fmt.Printf(bash.Generate(genUsage(), APP))
@@ -276,16 +264,14 @@ func genCompletion() int {
 	return 0
 }
 
-// genMan generates man page
-func genMan() int {
+// printMan prints man page
+func printMan() {
 	fmt.Println(
 		man.Generate(
 			genUsage(),
 			genAbout(""),
 		),
 	)
-
-	return 0
 }
 
 // genUsage generates usage info
