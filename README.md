@@ -16,13 +16,13 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/fz-003.gif)](#usage-demo)
+[![demo](https://gh.kaos.st/fz-111.gif)](#usage-demo)
 
 ### Installation
 
 #### From source
 
-To build the `fz` from scratch, make sure you have a working Go 1.19+ workspace (_[instructions](https://golang.org/doc/install)_), then:
+To build the `fz` from scratch, make sure you have a working Go 1.19+ workspace (_[instructions](https://go.dev/doc/install)_), then:
 
 ```
 go install github.com/essentialkaos/fz@latest
@@ -68,7 +68,7 @@ fz --generate-man | sudo gzip > /usr/share/man/man1/fz.1.gz
 ### Usage
 
 ```
-Usage: go-fuzz … |& fz
+Usage: go-fuzz … |& fz {options}
 
 Options
 
@@ -76,6 +76,10 @@ Options
   --help, -h         Show this help message
   --version, -v      Show version
 
+Examples
+
+  go-fuzz -bin app-fuzz.zip |& fz
+  Run fuzz test for app-fuzz.zip
 ```
 
 ### Build Status
