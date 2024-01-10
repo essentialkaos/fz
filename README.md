@@ -16,7 +16,7 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/fz-003.gif)](#usage-demo)
+[![demo](https://gh.kaos.st/fz-111.gif)](#usage-demo)
 
 ### Installation
 
