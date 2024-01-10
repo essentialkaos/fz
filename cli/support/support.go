@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"runtime/debug"
 	"strings"
 
 	"github.com/essentialkaos/ek/v12/fmtc"
@@ -24,9 +25,9 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ShowSupportInfo prints verbose info about application, system, dependencies and
+// Print prints verbose info about application, system, dependencies and
 // important environment
-func ShowSupportInfo(app, ver, gitRev string, gomod []byte) {
+func Print(app, ver, gitRev string, gomod []byte) {
 	fmtutil.SeparatorTitleColorTag = "{s-}"
 	fmtutil.SeparatorFullscreen = false
 	fmtutil.SeparatorColorTag = "{s-}"
@@ -55,6 +56,10 @@ func showApplicationInfo(app, ver, gitRev string) {
 		runtime.GOOS, runtime.GOARCH,
 	))
 
+	if gitRev == "" {
+		gitRev = extractGitRevFromBuildInfo()
+	}
+
 	if gitRev != "" {
 		if !fmtc.DisableColors && fmtc.IsTrueColorSupported() {
 			printInfo(7, "Git SHA", gitRev+getHashColorBullet(gitRev))
@@ -80,7 +85,19 @@ func showApplicationInfo(app, ver, gitRev string) {
 func showEnvInfo() {
 	fmtutil.Separator(false, "ENVIRONMENT")
 
-	printInfo(6, "Golang", getGOVersion())
+	cmd := exec.Command("go", "version")
+	out, err := cmd.Output()
+
+	if err != nil {
+		printInfo(2, "Go", "")
+		return
+	}
+
+	goVer := string(out)
+	goVer = strutil.ReadField(goVer, 2, false, " ")
+	goVer = strutil.Exclude(goVer, "go")
+
+	printInfo(2, "Go", goVer)
 }
 
 // showDepsInfo shows information about all dependencies
@@ -102,6 +119,23 @@ func showDepsInfo(gomod []byte) {
 	}
 }
 
+// extractGitRevFromBuildInfo extracts git SHA from embedded build info
+func extractGitRevFromBuildInfo() string {
+	info, ok := debug.ReadBuildInfo()
+
+	if !ok {
+		return ""
+	}
+
+	for _, s := range info.Settings {
+		if s.Key == "vcs.revision" && len(s.Value) > 7 {
+			return s.Value[:7]
+		}
+	}
+
+	return ""
+}
+
 // getHashColorBullet return bullet with color from hash
 func getHashColorBullet(v string) string {
 	if len(v) > 6 {
@@ -113,7 +147,7 @@ func getHashColorBullet(v string) string {
 
 // printInfo formats and prints info record
 func printInfo(size int, name, value string) {
-	name = name + ":"
+	name += ":"
 	size++
 
 	if value == "" {
@@ -126,19 +160,3 @@ func printInfo(size int, name, value string) {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
-
-// getGOVersion returns version of installed Go
-func getGOVersion() string {
-	cmd := exec.Command("go", "version")
-	out, err := cmd.Output()
-
-	if err != nil {
-		return ""
-	}
-
-	goVer := strings.Trim(string(out), "\n\t\r")
-	goVer = strutil.ReadField(goVer, 2, false, " ")
-	goVer = strutil.Exclude(goVer, "go")
-
-	return goVer
-}

@@ -36,7 +36,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.0"
+	VER  = "1.1.1"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -56,8 +56,8 @@ const (
 // optMap is map with options
 var optMap = options.Map{
 	OPT_NO_COLOR: {Type: options.BOOL},
-	OPT_HELP:     {Type: options.BOOL, Alias: "u:usage"},
-	OPT_VER:      {Type: options.BOOL, Alias: "ver"},
+	OPT_HELP:     {Type: options.BOOL},
+	OPT_VER:      {Type: options.MIXED},
 
 	OPT_VERB_VER:     {Type: options.BOOL},
 	OPT_COMPLETION:   {},
@@ -69,6 +69,8 @@ var optMap = options.Map{
 var prev gofuzz.Line
 var startTime time.Time
 var corpusTime time.Time
+
+var colorTagApp, colorTagVer string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -92,10 +94,10 @@ func Run(gitRev string, gomod []byte) {
 		printMan()
 		os.Exit(0)
 	case options.GetB(OPT_VER):
-		genAbout(gitRev).Print()
+		genAbout(gitRev).Print(options.GetS(OPT_VER))
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
-		support.ShowSupportInfo(APP, VER, gitRev, gomod)
+		support.Print(APP, VER, gitRev, gomod)
 		os.Exit(0)
 	case options.GetB(OPT_HELP) || !hasStdinData():
 		genUsage().Print()
@@ -110,6 +112,15 @@ func Run(gitRev string, gomod []byte) {
 func configureUI() {
 	if options.GetB(OPT_NO_COLOR) {
 		fmtc.DisableColors = true
+	}
+
+	switch {
+	case fmtc.IsTrueColorSupported():
+		colorTagApp, colorTagVer = "{*}{#00ADD8}", "{#5DC9E2}"
+	case fmtc.Is256ColorsSupported():
+		colorTagApp, colorTagVer = "{*}{#38}", "{#74}"
+	default:
+		colorTagApp, colorTagVer = "{*}{c}", "{c}"
 	}
 }
 
@@ -237,13 +248,8 @@ func isShutdownMessage(data string) bool {
 }
 
 // printError prints error message to console
-func printError(f string, a ...interface{}) {
+func printError(f string, a ...any) {
 	fmtc.Fprintf(os.Stderr, "{r}"+f+"{!}\n", a...)
-}
-
-// printError prints warning message to console
-func printWarn(f string, a ...interface{}) {
-	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -252,11 +258,11 @@ func printWarn(f string, a ...interface{}) {
 func printCompletion() int {
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Printf(bash.Generate(genUsage(), APP))
+		fmt.Print(bash.Generate(genUsage(), APP))
 	case "fish":
-		fmt.Printf(fish.Generate(genUsage(), APP))
+		fmt.Print(fish.Generate(genUsage(), APP))
 	case "zsh":
-		fmt.Printf(zsh.Generate(genUsage(), optMap, APP))
+		fmt.Print(zsh.Generate(genUsage(), optMap, APP))
 	default:
 		return 1
 	}
@@ -288,11 +294,16 @@ func genUsage() *usage.Info {
 // genAbout generates info about version
 func genAbout(gitRev string) *usage.About {
 	about := &usage.About{
-		App:           APP,
-		Version:       VER,
-		Desc:          DESC,
-		Year:          2009,
-		Owner:         "ESSENTIAL KAOS",
+		App:     APP,
+		Version: VER,
+		Desc:    DESC,
+		Year:    2009,
+		Owner:   "ESSENTIAL KAOS",
+
+		AppNameColorTag: colorTagApp,
+		VersionColorTag: colorTagVer,
+		DescSeparator:   "{s}—{!}",
+
 		License:       "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
 		UpdateChecker: usage.UpdateChecker{"essentialkaos/fz", update.GitHubChecker},
 	}
