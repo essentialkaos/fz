@@ -288,6 +288,11 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
 
+	info.AddRawExample(
+		"go-fuzz -bin app-fuzz.zip |& fz",
+		"Run fuzz test for app-fuzz.zip",
+	)
+
 	return info
 }
 
