@@ -48,8 +48,8 @@ func Parse(line string) (Line, error) {
 	data[4] = strutil.Exclude(data[4], "(")
 	data[4] = strutil.Exclude(data[4], ")")
 
-	dateTime := strutil.ReadField(data[0], 0, false, " ") + " "
-	dateTime += strutil.ReadField(data[0], 1, false, " ")
+	dateTime := strutil.ReadField(data[0], 0, false, ' ') + " "
+	dateTime += strutil.ReadField(data[0], 1, false, ' ')
 
 	result.DateTime, err = time.Parse("2006/01/02 15:04:05", dateTime)
 
@@ -57,43 +57,43 @@ func Parse(line string) (Line, error) {
 		return Line{}, fmt.Errorf("Can't parse date and time field: %w", err)
 	}
 
-	result.Workers, err = strconv.Atoi(strutil.ReadField(data[0], 3, false, " "))
+	result.Workers, err = strconv.Atoi(strutil.ReadField(data[0], 3, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse workers field: %w", err)
 	}
 
-	result.Corpus, err = strconv.Atoi(strutil.ReadField(data[1], 1, false, " "))
+	result.Corpus, err = strconv.Atoi(strutil.ReadField(data[1], 1, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse corpus field: %w", err)
 	}
 
-	result.Crashers, err = strconv.Atoi(strutil.ReadField(data[2], 1, false, " "))
+	result.Crashers, err = strconv.Atoi(strutil.ReadField(data[2], 1, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse crashers field: %w", err)
 	}
 
-	result.Restarts, err = strconv.Atoi(strutil.ReadField(data[3], 1, false, " "))
+	result.Restarts, err = strconv.Atoi(strutil.ReadField(data[3], 1, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse restarts field: %w", err)
 	}
 
-	result.Execs, err = strconv.Atoi(strutil.ReadField(data[4], 1, false, " "))
+	result.Execs, err = strconv.Atoi(strutil.ReadField(data[4], 1, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse execs field: %w", err)
 	}
 
-	result.ExecsPerSec, err = strconv.Atoi(strutil.ReadField(data[4], 2, false, " "))
+	result.ExecsPerSec, err = strconv.Atoi(strutil.ReadField(data[4], 2, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse execs per sec field: %w", err)
 	}
 
-	result.Cover, err = strconv.Atoi(strutil.ReadField(data[5], 1, false, " "))
+	result.Cover, err = strconv.Atoi(strutil.ReadField(data[5], 1, false, ' '))
 
 	if err != nil {
 		return Line{}, fmt.Errorf("Can't parse cover field: %w", err)
