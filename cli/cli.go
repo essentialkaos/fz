@@ -15,10 +15,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/essentialkaos/ek/v12/env"
 	"github.com/essentialkaos/ek/v12/fmtc"
 	"github.com/essentialkaos/ek/v12/fmtutil"
 	"github.com/essentialkaos/ek/v12/options"
 	"github.com/essentialkaos/ek/v12/signal"
+	"github.com/essentialkaos/ek/v12/support"
+	"github.com/essentialkaos/ek/v12/support/apps"
+	"github.com/essentialkaos/ek/v12/support/deps"
 	"github.com/essentialkaos/ek/v12/timeutil"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
@@ -27,7 +31,6 @@ import (
 	"github.com/essentialkaos/ek/v12/usage/man"
 	"github.com/essentialkaos/ek/v12/usage/update"
 
-	"github.com/essentialkaos/fz/cli/support"
 	"github.com/essentialkaos/fz/gofuzz"
 )
 
@@ -36,7 +39,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.1"
+	VER  = "1.1.2"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -97,7 +100,12 @@ func Run(gitRev string, gomod []byte) {
 		genAbout(gitRev).Print(options.GetS(OPT_VER))
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
-		support.Print(APP, VER, gitRev, gomod)
+		support.Collect(APP, VER).
+			WithRevision(gitRev).
+			WithDeps(deps.Extract(gomod)).
+			WithApps(apps.Golang()).
+			WithChecks(checkForGoFuzz()).
+			Print()
 		os.Exit(0)
 	case options.GetB(OPT_HELP) || !hasStdinData():
 		genUsage().Print()
@@ -254,6 +262,17 @@ func printError(f string, a ...any) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// checkForGoFuzz checks if go-fuzz binary present on the system
+func checkForGoFuzz() support.Check {
+	goFuzzBin := env.Which("go-fuzz")
+
+	if goFuzzBin == "" {
+		return support.Check{support.CHECK_ERROR, "go-fuzz", "Binary not found in PATH"}
+	}
+
+	return support.Check{support.CHECK_OK, "go-fuzz", fmt.Sprintf("Binary found (%s)", goFuzzBin)}
+}
+
 // printCompletion prints completion for given shell
 func printCompletion() int {
 	switch options.GetS(OPT_COMPLETION) {
@@ -309,12 +328,15 @@ func genAbout(gitRev string) *usage.About {
 		VersionColorTag: colorTagVer,
 		DescSeparator:   "{s}—{!}",
 
-		License:       "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
-		UpdateChecker: usage.UpdateChecker{"essentialkaos/fz", update.GitHubChecker},
+		License: "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
 	}
 
 	if gitRev != "" {
 		about.Build = "git:" + gitRev
+		about.UpdateChecker = usage.UpdateChecker{
+			"essentialkaos/fz",
+			update.GitHubChecker,
+		}
 	}
 
 	return about
