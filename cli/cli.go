@@ -23,6 +23,8 @@ import (
 	"github.com/essentialkaos/ek/v12/support"
 	"github.com/essentialkaos/ek/v12/support/apps"
 	"github.com/essentialkaos/ek/v12/support/deps"
+	"github.com/essentialkaos/ek/v12/terminal"
+	"github.com/essentialkaos/ek/v12/terminal/tty"
 	"github.com/essentialkaos/ek/v12/timeutil"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
@@ -39,7 +41,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.2"
+	VER  = "1.1.3"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -81,10 +83,13 @@ var colorTagApp, colorTagVer string
 func Run(gitRev string, gomod []byte) {
 	runtime.GOMAXPROCS(3)
 
+	preConfigureUI()
+
 	_, errs := options.Parse(optMap)
 
-	if len(errs) != 0 {
-		printError(errs[0].Error())
+	if !errs.IsEmpty() {
+		terminal.Error("Options parsing errors:")
+		terminal.Error(errs.String())
 		os.Exit(1)
 	}
 
@@ -116,19 +121,26 @@ func Run(gitRev string, gomod []byte) {
 	processInput()
 }
 
-// configureUI configures user interface
-func configureUI() {
-	if options.GetB(OPT_NO_COLOR) {
+// preConfigureUI preconfigures UI based on information about user terminal
+func preConfigureUI() {
+	if !tty.IsTTY() {
 		fmtc.DisableColors = true
 	}
 
 	switch {
 	case fmtc.IsTrueColorSupported():
-		colorTagApp, colorTagVer = "{*}{#00ADD8}", "{#5DC9E2}"
+		colorTagApp, colorTagVer = "{*}{&}{#00ADD8}", "{#5DC9E2}"
 	case fmtc.Is256ColorsSupported():
-		colorTagApp, colorTagVer = "{*}{#38}", "{#74}"
+		colorTagApp, colorTagVer = "{*}{&}{#38}", "{#74}"
 	default:
-		colorTagApp, colorTagVer = "{*}{c}", "{c}"
+		colorTagApp, colorTagVer = "{*}{&}{c}", "{c}"
+	}
+}
+
+// configureUI configures user interface
+func configureUI() {
+	if options.GetB(OPT_NO_COLOR) {
+		fmtc.DisableColors = true
 	}
 }
 
@@ -162,7 +174,7 @@ func processInput() {
 
 		if err != nil {
 			fmtc.TPrintf("")
-			printError(err.Error())
+			terminal.Error(err)
 			os.Exit(1)
 		}
 
@@ -255,11 +267,6 @@ func isShutdownMessage(data string) bool {
 	return strings.Contains(data, "shutting down...")
 }
 
-// printError prints error message to console
-func printError(f string, a ...any) {
-	fmtc.Fprintf(os.Stderr, "{r}"+f+"{!}\n", a...)
-}
-
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // checkForGoFuzz checks if go-fuzz binary present on the system
@@ -291,12 +298,7 @@ func printCompletion() int {
 
 // printMan prints man page
 func printMan() {
-	fmt.Println(
-		man.Generate(
-			genUsage(),
-			genAbout(""),
-		),
-	)
+	fmt.Println(man.Generate(genUsage(), genAbout("")))
 }
 
 // genUsage generates usage info
