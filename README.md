@@ -67,20 +67,7 @@ fz --generate-man | sudo gzip > /usr/share/man/man1/fz.1.gz
 
 ### Usage
 
-```
-Usage: go-fuzz … |& fz {options}
-
-Options
-
-  --no-color, -nc    Disable colors in output
-  --help, -h         Show this help message
-  --version, -v      Show version
-
-Examples
-
-  go-fuzz -bin app-fuzz.zip |& fz
-  Run fuzz test for app-fuzz.zip
-```
+<img src=".github/images/usage.svg" />
 
 ### Build Status
 
