@@ -41,7 +41,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.5"
+	VER  = "1.1.6"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -89,7 +89,7 @@ func Run(gitRev string, gomod []byte) {
 
 	if !errs.IsEmpty() {
 		terminal.Error("Options parsing errors:")
-		terminal.Error(errs.String())
+		terminal.Error(errs.Error("- "))
 		os.Exit(1)
 	}
 
