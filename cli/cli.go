@@ -41,7 +41,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.5"
+	VER  = "1.1.6"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
