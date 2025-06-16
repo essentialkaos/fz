@@ -19,6 +19,9 @@ import (
 	"github.com/essentialkaos/ek/v13/fmtc"
 	"github.com/essentialkaos/ek/v13/fmtutil"
 	"github.com/essentialkaos/ek/v13/options"
+	"github.com/essentialkaos/ek/v13/selfupdate"
+	"github.com/essentialkaos/ek/v13/selfupdate/interactive"
+	storage "github.com/essentialkaos/ek/v13/selfupdate/storage/basic"
 	"github.com/essentialkaos/ek/v13/signal"
 	"github.com/essentialkaos/ek/v13/support"
 	"github.com/essentialkaos/ek/v13/support/apps"
@@ -41,7 +44,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.6"
+	VER  = "1.2.0"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -51,6 +54,7 @@ const (
 	OPT_HELP     = "h:help"
 	OPT_VER      = "v:version"
 
+	OPT_UPDATE       = "U:update"
 	OPT_VERB_VER     = "vv:verbose-version"
 	OPT_COMPLETION   = "completion"
 	OPT_GENERATE_MAN = "generate-man"
@@ -64,6 +68,7 @@ var optMap = options.Map{
 	OPT_HELP:     {Type: options.BOOL},
 	OPT_VER:      {Type: options.MIXED},
 
+	OPT_UPDATE:       {Type: options.MIXED},
 	OPT_VERB_VER:     {Type: options.BOOL},
 	OPT_COMPLETION:   {},
 	OPT_GENERATE_MAN: {Type: options.BOOL},
@@ -112,6 +117,8 @@ func Run(gitRev string, gomod []byte) {
 			WithChecks(checkForGoFuzz()).
 			Print()
 		os.Exit(0)
+	case options.GetB(OPT_UPDATE):
+		os.Exit(updateBinary())
 	case options.GetB(OPT_HELP) || !hasStdinData():
 		genUsage().Print()
 		os.Exit(0)
@@ -278,6 +285,39 @@ func checkForGoFuzz() support.Check {
 	}
 
 	return support.Check{support.CHECK_OK, "go-fuzz", fmt.Sprintf("Binary found (%s)", goFuzzBin)}
+}
+
+// updateBinary updates current binary to the latest version
+func updateBinary() int {
+	quiet := strings.ToLower(options.GetS(OPT_UPDATE)) == "quiet"
+	updInfo, hasUpdate, err := storage.NewStorage("https://apps.kaos.ws").Check(APP, VER)
+
+	if err != nil {
+		if !quiet {
+			terminal.Error("Can't update binary: %v", err)
+		}
+
+		return 1
+	}
+
+	if !hasUpdate {
+		fmtc.If(!quiet).Println("{g}You are using the latest version of the app{!}")
+		return 0
+	}
+
+	pubKey := "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnYHsOTvrKqeE97dsEt7Ge97+yUcvQJn1++s++FqShDyqwV8CcoKp0E6nDTc8SxInZ5wxwcScxSicfvC9S73OSg=="
+
+	if quiet {
+		err = selfupdate.Run(updInfo, pubKey, nil)
+	} else {
+		err = selfupdate.Run(updInfo, pubKey, interactive.Dispatcher())
+	}
+
+	if err != nil {
+		return 1
+	}
+
+	return 0
 }
 
 // printCompletion prints completion for given shell
