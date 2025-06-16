@@ -203,9 +203,9 @@ func renderInfo(cur gofuzz.Line) {
 	fmtc.TPrintf(
 		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%s {s-}•{!} {*}Restarts:{!} {s}1/{!}%s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} %s{s}/s{!} {s-}(%s){!}",
 		timeutil.Format(cur.DateTime, "%Y/%m/%d %H:%M:%S"),
-		timeutil.ShortDuration(time.Since(startTime), false),
+		timeutil.Pretty(time.Since(startTime)).Short(true),
 		cur.Workers, fmtutil.PrettyNum(cur.Corpus),
-		timeutil.ShortDuration(time.Since(corpusTime), false),
+		timeutil.Pretty(time.Since(corpusTime)).Short(true),
 		fmtutil.PrettyNum(cur.Crashers),
 		fmtutil.PrettyNum(cur.Restarts),
 		fmtutil.PrettyNum(cur.Cover),
@@ -219,7 +219,7 @@ func printResults() {
 	corpus := fmtutil.PrettyNum(prev.Corpus)
 	crashers := fmtutil.PrettyNum(prev.Crashers)
 	cover := fmtutil.PrettyNum(prev.Cover)
-	duration := timeutil.ShortDuration(time.Since(startTime))
+	duration := timeutil.Pretty(time.Since(startTime)).Short()
 	execs := fmtutil.PrettyNum(prev.Execs)
 
 	fmtc.TPrintf(
@@ -335,10 +335,7 @@ func genAbout(gitRev string) *usage.About {
 
 	if gitRev != "" {
 		about.Build = "git:" + gitRev
-		about.UpdateChecker = usage.UpdateChecker{
-			"essentialkaos/fz",
-			update.GitHubChecker,
-		}
+		about.UpdateChecker = usage.UpdateChecker{"essentialkaos/fz", update.GitHubChecker}
 	}
 
 	return about
