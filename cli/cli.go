@@ -345,6 +345,7 @@ func printMan() {
 func genUsage() *usage.Info {
 	info := usage.NewInfo("go-fuzz … |& fz")
 
+	info.AddOption(OPT_UPDATE, "Update application to the latest version")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
