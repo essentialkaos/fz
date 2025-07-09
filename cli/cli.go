@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2024 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -19,6 +19,9 @@ import (
 	"github.com/essentialkaos/ek/v13/fmtc"
 	"github.com/essentialkaos/ek/v13/fmtutil"
 	"github.com/essentialkaos/ek/v13/options"
+	"github.com/essentialkaos/ek/v13/selfupdate"
+	"github.com/essentialkaos/ek/v13/selfupdate/interactive"
+	storage "github.com/essentialkaos/ek/v13/selfupdate/storage/basic"
 	"github.com/essentialkaos/ek/v13/signal"
 	"github.com/essentialkaos/ek/v13/support"
 	"github.com/essentialkaos/ek/v13/support/apps"
@@ -41,7 +44,7 @@ import (
 // App info
 const (
 	APP  = "fz"
-	VER  = "1.1.6"
+	VER  = "1.2.0"
 	DESC = "Tool for formatting go-fuzz output"
 )
 
@@ -51,6 +54,7 @@ const (
 	OPT_HELP     = "h:help"
 	OPT_VER      = "v:version"
 
+	OPT_UPDATE       = "U:update"
 	OPT_VERB_VER     = "vv:verbose-version"
 	OPT_COMPLETION   = "completion"
 	OPT_GENERATE_MAN = "generate-man"
@@ -64,6 +68,7 @@ var optMap = options.Map{
 	OPT_HELP:     {Type: options.BOOL},
 	OPT_VER:      {Type: options.MIXED},
 
+	OPT_UPDATE:       {Type: options.MIXED},
 	OPT_VERB_VER:     {Type: options.BOOL},
 	OPT_COMPLETION:   {},
 	OPT_GENERATE_MAN: {Type: options.BOOL},
@@ -112,6 +117,8 @@ func Run(gitRev string, gomod []byte) {
 			WithChecks(checkForGoFuzz()).
 			Print()
 		os.Exit(0)
+	case options.GetB(OPT_UPDATE):
+		os.Exit(updateBinary())
 	case options.GetB(OPT_HELP) || !hasStdinData():
 		genUsage().Print()
 		os.Exit(0)
@@ -203,9 +210,9 @@ func renderInfo(cur gofuzz.Line) {
 	fmtc.TPrintf(
 		"{s}%s{!} {s-}[%s]{!} {*}Workers:{!} "+workersTag+"%d{!} {s-}•{!} {*}Corpus:{!} "+corpusTag+"%s{!} {s-}(%s){!} {s-}•{!} {*}Crashers:{!} "+crashersTag+"%s {s-}•{!} {*}Restarts:{!} {s}1/{!}%s {s-}•{!} {*}Cover:{!} "+coverTag+"%s{!} {s-}•{!} {*}Execs:{!} %s{s}/s{!} {s-}(%s){!}",
 		timeutil.Format(cur.DateTime, "%Y/%m/%d %H:%M:%S"),
-		timeutil.ShortDuration(time.Since(startTime), false),
+		timeutil.Pretty(time.Since(startTime)).Short(true),
 		cur.Workers, fmtutil.PrettyNum(cur.Corpus),
-		timeutil.ShortDuration(time.Since(corpusTime), false),
+		timeutil.Pretty(time.Since(corpusTime)).Short(true),
 		fmtutil.PrettyNum(cur.Crashers),
 		fmtutil.PrettyNum(cur.Restarts),
 		fmtutil.PrettyNum(cur.Cover),
@@ -219,7 +226,7 @@ func printResults() {
 	corpus := fmtutil.PrettyNum(prev.Corpus)
 	crashers := fmtutil.PrettyNum(prev.Crashers)
 	cover := fmtutil.PrettyNum(prev.Cover)
-	duration := timeutil.ShortDuration(time.Since(startTime))
+	duration := timeutil.Pretty(time.Since(startTime)).Short()
 	execs := fmtutil.PrettyNum(prev.Execs)
 
 	fmtc.TPrintf(
@@ -280,6 +287,39 @@ func checkForGoFuzz() support.Check {
 	return support.Check{support.CHECK_OK, "go-fuzz", fmt.Sprintf("Binary found (%s)", goFuzzBin)}
 }
 
+// updateBinary updates current binary to the latest version
+func updateBinary() int {
+	quiet := strings.ToLower(options.GetS(OPT_UPDATE)) == "quiet"
+	updInfo, hasUpdate, err := storage.NewStorage("https://apps.kaos.ws").Check(APP, VER)
+
+	if err != nil {
+		if !quiet {
+			terminal.Error("Can't update binary: %v", err)
+		}
+
+		return 1
+	}
+
+	if !hasUpdate {
+		fmtc.If(!quiet).Println("{g}You are using the latest version of the app{!}")
+		return 0
+	}
+
+	pubKey := "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnYHsOTvrKqeE97dsEt7Ge97+yUcvQJn1++s++FqShDyqwV8CcoKp0E6nDTc8SxInZ5wxwcScxSicfvC9S73OSg=="
+
+	if quiet {
+		err = selfupdate.Run(updInfo, pubKey, nil)
+	} else {
+		err = selfupdate.Run(updInfo, pubKey, interactive.Dispatcher())
+	}
+
+	if err != nil {
+		return 1
+	}
+
+	return 0
+}
+
 // printCompletion prints completion for given shell
 func printCompletion() int {
 	switch options.GetS(OPT_COMPLETION) {
@@ -305,6 +345,7 @@ func printMan() {
 func genUsage() *usage.Info {
 	info := usage.NewInfo("go-fuzz … |& fz")
 
+	info.AddOption(OPT_UPDATE, "Update application to the latest version")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
@@ -335,10 +376,7 @@ func genAbout(gitRev string) *usage.About {
 
 	if gitRev != "" {
 		about.Build = "git:" + gitRev
-		about.UpdateChecker = usage.UpdateChecker{
-			"essentialkaos/fz",
-			update.GitHubChecker,
-		}
+		about.UpdateChecker = usage.UpdateChecker{"essentialkaos/fz", update.GitHubChecker}
 	}
 
 	return about

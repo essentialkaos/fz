@@ -8,7 +8,7 @@
   <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
-<p align="center"><a href="#usage-demo">Demo</a> • <a href="#installation">Installation</a> • <a href="#command-line-completion">Completions</a> • <a href="#man-documentation">Man documentation</a> • <a href="#usage">Usage</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#usage-demo">Demo</a> • <a href="#installation">Installation</a> • <a href="#upgrading">Upgrading</a> • <a href="#command-line-completion">Completions</a> • <a href="#man-documentation">Man documentation</a> • <a href="#usage">Usage</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
 
 <br/>
 
@@ -16,7 +16,7 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/fz-111.gif)](#usage-demo)
+[![demo](https://github.com/user-attachments/assets/0f350911-3c63-4e02-8eec-dc038c034350)](#usage-demo)
 
 ### Installation
 
@@ -34,6 +34,20 @@ You can download prebuilt binaries for Linux and macOS from [EK Apps Repository]
 
 ```bash
 bash <(curl -fsSL https://apps.kaos.st/get) fz
+```
+
+### Upgrading
+
+Since version `1.2.0` you can update `fz` to the latest release using [self-update feature](https://github.com/essentialkaos/.github/blob/master/APPS-UPDATE.md):
+
+```bash
+fz --update
+```
+
+This command will runs a self-update in interactive mode. If you want to run a quiet update (_no output_), use the following command:
+
+```bash
+fz --update=quiet
 ```
 
 ### Command-line completion
